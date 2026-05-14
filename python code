@@ -1,0 +1,97 @@
+# ============================================================
+#  SCT_CS_3 — Password Strength Checker | CLI Version
+#  SkillCraft Technology | Cyber Security Internship
+#  Author : Iqra Raheem
+# ============================================================
+
+import re, math
+
+def analyse_password(pwd):
+    length     = len(pwd)
+    has_upper  = bool(re.search(r'[A-Z]', pwd))
+    has_lower  = bool(re.search(r'[a-z]', pwd))
+    has_digit  = bool(re.search(r'\d', pwd))
+    has_symbol = bool(re.search(r'[^A-Za-z0-9]', pwd))
+
+    # Score: each criterion = 1 point; length adds up to 4 more
+    score = sum([has_upper, has_lower, has_digit, has_symbol])
+    if length >= 8:  score += 1
+    if length >= 12: score += 1
+    if length >= 16: score += 1
+    if length >= 20: score += 1
+
+    if score <= 2:   strength, color = "Very Weak  ❌", "very_weak"
+    elif score <= 4: strength, color = "Weak       ⚠️ ", "weak"
+    elif score == 5: strength, color = "Moderate   🟡", "moderate"
+    elif score == 6: strength, color = "Strong     🟢", "strong"
+    else:            strength, color = "Very Strong💪", "very_strong"
+
+    # Entropy estimate
+    pool = 0
+    if has_lower:  pool += 26
+    if has_upper:  pool += 26
+    if has_digit:  pool += 10
+    if has_symbol: pool += 32
+    entropy = round(length * math.log2(pool), 1) if pool else 0
+
+    # Suggestions
+    tips = []
+    if not has_upper:  tips.append("Add uppercase letters (A–Z)")
+    if not has_lower:  tips.append("Add lowercase letters (a–z)")
+    if not has_digit:  tips.append("Add numbers (0–9)")
+    if not has_symbol: tips.append("Add special characters (!@#$...)")
+    if length < 12:    tips.append("Make it at least 12 characters long")
+    if length < 8:     tips.append("Minimum 8 characters required")
+
+    return {
+        "length": length, "has_upper": has_upper, "has_lower": has_lower,
+        "has_digit": has_digit, "has_symbol": has_symbol,
+        "score": score, "strength": strength, "entropy": entropy, "tips": tips
+    }
+
+
+def print_bar(score, max_score=8):
+    filled = int((score / max_score) * 20)
+    bar    = "█" * filled + "░" * (20 - filled)
+    print(f"\n  Strength  [{bar}] {score}/{max_score}")
+
+
+def display_banner():
+    print("=" * 55)
+    print("   PASSWORD STRENGTH CHECKER — SkillCraft Technology")
+    print("       Cyber Security Internship | Task 03")
+    print("=" * 55)
+
+
+def main():
+    display_banner()
+
+    while True:
+        print()
+        pwd = input("  Enter password (or 'q' to quit): ")
+        if pwd.lower() == 'q':
+            print("\n  Goodbye! Stay secure 🔐\n")
+            break
+
+        r = analyse_password(pwd)
+        print("\n  ─── Analysis ───────────────────────────────")
+        print(f"  Length         : {r['length']} chars")
+        print(f"  Uppercase      : {'✅' if r['has_upper']  else '❌'}")
+        print(f"  Lowercase      : {'✅' if r['has_lower']  else '❌'}")
+        print(f"  Numbers        : {'✅' if r['has_digit']  else '❌'}")
+        print(f"  Special Chars  : {'✅' if r['has_symbol'] else '❌'}")
+        print(f"  Entropy        : ~{r['entropy']} bits")
+        print_bar(r['score'])
+        print(f"\n  Result  ➜  {r['strength']}")
+
+        if r['tips']:
+            print("\n  💡 Suggestions:")
+            for t in r['tips']:
+                print(f"     • {t}")
+        else:
+            print("\n  🎉 Your password meets all criteria!")
+        print("  " + "─" * 45)
+
+
+if __name__ == "__main__":
+    main()
